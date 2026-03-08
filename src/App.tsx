@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import TutorProfile from "./pages/TutorProfile";
 import Register from "./pages/Register";
 import TutorDashboard from "./pages/TutorDashboard";
+import StudentDashboard from "./pages/StudentDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
