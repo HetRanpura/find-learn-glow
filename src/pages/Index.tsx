@@ -31,11 +31,12 @@ const Index = () => {
           </Link>
           <div className="hidden md:flex items-center gap-6">
             <Link to="/" className="text-sm text-foreground hover:text-primary transition-colors">Home</Link>
-            <Link to="/register" className="text-sm text-muted-foreground hover:text-primary transition-colors">Become a Tutor</Link>
-            <Link to="/register" className="text-sm text-muted-foreground hover:text-primary transition-colors">Sign Up</Link>
-            <Button size="sm" className="bg-primary text-primary-foreground hover:bg-lime-glow">
-              Login
-            </Button>
+            <Link to="/signup" className="text-sm text-muted-foreground hover:text-primary transition-colors">Sign Up</Link>
+            <Link to="/login">
+              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-lime-glow">
+                Login
+              </Button>
+            </Link>
           </div>
         </div>
       </nav>
