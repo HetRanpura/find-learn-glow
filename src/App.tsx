@@ -23,6 +23,7 @@ const App = () => (
           <Route path="/tutor/:id" element={<TutorProfile />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<TutorDashboard />} />
+          <Route path="/student-dashboard" element={<StudentDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
