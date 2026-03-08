@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import TutorProfile from "./pages/TutorProfile";
 import Register from "./pages/Register";
+import TutorDashboard from "./pages/TutorDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
