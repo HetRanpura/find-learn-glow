@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import TutorProfile from "./pages/TutorProfile";
 import Register from "./pages/Register";
 import TutorDashboard from "./pages/TutorDashboard";
+import StudentDashboard from "./pages/StudentDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/tutor/:id" element={<TutorProfile />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<TutorDashboard />} />
+          <Route path="/student-dashboard" element={<StudentDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
