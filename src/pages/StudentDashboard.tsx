@@ -281,6 +281,11 @@ const StudentDashboard = () => {
                         <div className="flex items-center gap-3">
                           <StatusBadge status={session.status} />
                           <span className="font-bold text-primary">₹{session.fee}</span>
+                          {session.status !== "cancelled" && (
+                            <Button size="sm" variant="outline" className="border-destructive/50 text-destructive hover:bg-destructive/10">
+                              <XCircle className="h-3 w-3 mr-1" /> Cancel
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </CardContent>

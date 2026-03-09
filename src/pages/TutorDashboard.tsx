@@ -214,9 +214,11 @@ const TutorDashboard = () => {
                           <div className="flex items-center gap-2">
                             <Badge className={slot.status === "confirmed"
                               ? "bg-primary/10 text-primary border border-primary/20"
+                              : slot.status === "completed"
+                              ? "bg-primary/20 text-primary border border-primary/30"
                               : "bg-secondary/10 text-secondary border border-secondary/20"
                             }>
-                              {slot.status === "confirmed" ? "Confirmed" : "Pending"}
+                              {slot.status === "confirmed" ? "Confirmed" : slot.status === "completed" ? "Completed" : "Pending"}
                             </Badge>
                             {slot.status === "pending" && (
                               <div className="flex gap-1">
@@ -227,6 +229,16 @@ const TutorDashboard = () => {
                                   <XCircle className="w-4 h-4" />
                                 </Button>
                               </div>
+                            )}
+                            {slot.status === "confirmed" && (
+                              <Button size="sm" variant="outline" className="h-8 border-primary/50 text-primary hover:bg-primary/10 text-xs">
+                                <CheckCircle className="w-3 h-3 mr-1" /> Mark Complete
+                              </Button>
+                            )}
+                            {slot.status === "completed" && (
+                              <Button size="sm" variant="outline" className="h-8 border-primary/50 text-primary hover:bg-primary/10 text-xs">
+                                <Star className="w-3 h-3 mr-1" /> Review
+                              </Button>
                             )}
                           </div>
                         </CardContent>
