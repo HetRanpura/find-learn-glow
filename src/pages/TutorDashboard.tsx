@@ -70,6 +70,8 @@ const earningsData = {
 const TutorDashboard = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedDay, setSelectedDay] = useState(0);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewTarget, setReviewTarget] = useState("");
   const growthPercent = (((earningsData.thisMonth - earningsData.lastMonth) / earningsData.lastMonth) * 100).toFixed(1);
 
   return (
