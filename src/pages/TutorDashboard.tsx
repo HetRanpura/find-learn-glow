@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import EditProfileDialog from "@/components/EditProfileDialog";
+import ReviewDialog from "@/components/ReviewDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -68,6 +70,8 @@ const earningsData = {
 const TutorDashboard = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedDay, setSelectedDay] = useState(0);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewTarget, setReviewTarget] = useState("");
   const growthPercent = (((earningsData.thisMonth - earningsData.lastMonth) / earningsData.lastMonth) * 100).toFixed(1);
 
   return (
@@ -85,6 +89,14 @@ const TutorDashboard = () => {
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center">3</span>
             </Button>
             <div className="flex items-center gap-3">
+              <EditProfileDialog profile={{
+                name: "Dr. Ananya Sharma",
+                title: "Mathematics Tutor",
+                location: "Delhi, India",
+                hourlyRate: 800,
+                experience: "8 years",
+                about: "Ph.D. in Mathematics from IIT Delhi with 8 years of teaching experience.",
+              }} />
               <div className="w-9 h-9 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-sm font-semibold text-primary">AS</div>
               <div className="hidden md:block">
                 <p className="text-sm font-medium text-foreground">Dr. Ananya Sharma</p>
@@ -214,9 +226,11 @@ const TutorDashboard = () => {
                           <div className="flex items-center gap-2">
                             <Badge className={slot.status === "confirmed"
                               ? "bg-primary/10 text-primary border border-primary/20"
+                              : slot.status === "completed"
+                              ? "bg-primary/20 text-primary border border-primary/30"
                               : "bg-secondary/10 text-secondary border border-secondary/20"
                             }>
-                              {slot.status === "confirmed" ? "Confirmed" : "Pending"}
+                              {slot.status === "confirmed" ? "Confirmed" : slot.status === "completed" ? "Completed" : "Pending"}
                             </Badge>
                             {slot.status === "pending" && (
                               <div className="flex gap-1">
@@ -227,6 +241,17 @@ const TutorDashboard = () => {
                                   <XCircle className="w-4 h-4" />
                                 </Button>
                               </div>
+                            )}
+                            {slot.status === "confirmed" && (
+                              <Button size="sm" variant="outline" className="h-8 border-primary/50 text-primary hover:bg-primary/10 text-xs">
+                                <CheckCircle className="w-3 h-3 mr-1" /> Mark Complete
+                              </Button>
+                            )}
+                            {slot.status === "completed" && (
+                              <Button size="sm" variant="outline" className="h-8 border-primary/50 text-primary hover:bg-primary/10 text-xs"
+                                onClick={() => { setReviewTarget(slot.student); setReviewOpen(true); }}>
+                                <Star className="w-3 h-3 mr-1" /> Review
+                              </Button>
                             )}
                           </div>
                         </CardContent>
@@ -392,6 +417,7 @@ const TutorDashboard = () => {
           </TabsContent>
         </Tabs>
       </main>
+      <ReviewDialog open={reviewOpen} onOpenChange={setReviewOpen} targetName={reviewTarget} targetRole="student" />
     </div>
   );
 };
