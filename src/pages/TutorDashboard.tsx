@@ -89,6 +89,14 @@ const TutorDashboard = () => {
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center">3</span>
             </Button>
             <div className="flex items-center gap-3">
+              <EditProfileDialog profile={{
+                name: "Dr. Ananya Sharma",
+                title: "Mathematics Tutor",
+                location: "Delhi, India",
+                hourlyRate: 800,
+                experience: "8 years",
+                about: "Ph.D. in Mathematics from IIT Delhi with 8 years of teaching experience.",
+              }} />
               <div className="w-9 h-9 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-sm font-semibold text-primary">AS</div>
               <div className="hidden md:block">
                 <p className="text-sm font-medium text-foreground">Dr. Ananya Sharma</p>
