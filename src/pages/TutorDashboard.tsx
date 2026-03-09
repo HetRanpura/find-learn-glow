@@ -248,7 +248,8 @@ const TutorDashboard = () => {
                               </Button>
                             )}
                             {slot.status === "completed" && (
-                              <Button size="sm" variant="outline" className="h-8 border-primary/50 text-primary hover:bg-primary/10 text-xs">
+                              <Button size="sm" variant="outline" className="h-8 border-primary/50 text-primary hover:bg-primary/10 text-xs"
+                                onClick={() => { setReviewTarget(slot.student); setReviewOpen(true); }}>
                                 <Star className="w-3 h-3 mr-1" /> Review
                               </Button>
                             )}
