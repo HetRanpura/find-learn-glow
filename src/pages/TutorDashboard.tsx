@@ -417,6 +417,7 @@ const TutorDashboard = () => {
           </TabsContent>
         </Tabs>
       </main>
+      <ReviewDialog open={reviewOpen} onOpenChange={setReviewOpen} targetName={reviewTarget} targetRole="student" />
     </div>
   );
 };
