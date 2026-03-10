@@ -3,8 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   GraduationCap, Calendar, DollarSign, Users, Clock, CheckCircle, XCircle,
-  TrendingUp, BookOpen, Star, Bell, ChevronRight, BarChart3, ArrowUpRight,
-  ArrowDownRight, MessageSquare
+  TrendingUp, BookOpen, Star, Bell, BarChart3, ArrowUpRight, MessageSquare, Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -14,29 +13,48 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Calendar as CalendarWidget } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
-const weekSchedule = [
+interface ScheduleSlot {
+  time: string;
+  student: string;
+  subject: string;
+  status: "confirmed" | "pending" | "completed";
+  mode: "online" | "in-person";
+}
+
+interface DaySchedule {
+  day: string;
+  date: string;
+  slots: ScheduleSlot[];
+}
+
+const initialSchedule: DaySchedule[] = [
   { day: "Mon", date: "10", slots: [
-    { time: "9:00 AM", student: "Aarav Patel", subject: "Mathematics", status: "confirmed" },
-    { time: "11:00 AM", student: "Ishita Sharma", subject: "Mathematics", status: "confirmed" },
-    { time: "2:00 PM", student: "Rohan Mehta", subject: "Physics", status: "pending" },
+    { time: "9:00 AM", student: "Aarav Patel", subject: "Mathematics", status: "confirmed", mode: "online" },
+    { time: "11:00 AM", student: "Ishita Sharma", subject: "Mathematics", status: "confirmed", mode: "in-person" },
+    { time: "2:00 PM", student: "Rohan Mehta", subject: "Physics", status: "pending", mode: "online" },
   ]},
   { day: "Tue", date: "11", slots: [
-    { time: "10:00 AM", student: "Priya Das", subject: "Mathematics", status: "confirmed" },
-    { time: "3:00 PM", student: "Kavya Nair", subject: "Chemistry", status: "confirmed" },
+    { time: "10:00 AM", student: "Priya Das", subject: "Mathematics", status: "confirmed", mode: "online" },
+    { time: "3:00 PM", student: "Kavya Nair", subject: "Chemistry", status: "confirmed", mode: "in-person" },
   ]},
   { day: "Wed", date: "12", slots: [
-    { time: "9:00 AM", student: "Arjun Reddy", subject: "Physics", status: "confirmed" },
-    { time: "1:00 PM", student: "Sanya Gupta", subject: "Mathematics", status: "pending" },
-    { time: "4:00 PM", student: "Vikram Joshi", subject: "Chemistry", status: "confirmed" },
+    { time: "9:00 AM", student: "Arjun Reddy", subject: "Physics", status: "confirmed", mode: "online" },
+    { time: "1:00 PM", student: "Sanya Gupta", subject: "Mathematics", status: "pending", mode: "online" },
+    { time: "4:00 PM", student: "Vikram Joshi", subject: "Chemistry", status: "confirmed", mode: "in-person" },
   ]},
   { day: "Thu", date: "13", slots: [
-    { time: "10:00 AM", student: "Meera Iyer", subject: "Mathematics", status: "confirmed" },
+    { time: "10:00 AM", student: "Meera Iyer", subject: "Mathematics", status: "confirmed", mode: "online" },
   ]},
   { day: "Fri", date: "14", slots: [
-    { time: "9:00 AM", student: "Rahul Verma", subject: "Physics", status: "confirmed" },
-    { time: "11:00 AM", student: "Ananya Kapoor", subject: "Mathematics", status: "confirmed" },
-    { time: "2:00 PM", student: "Dev Malhotra", subject: "Chemistry", status: "pending" },
+    { time: "9:00 AM", student: "Rahul Verma", subject: "Physics", status: "confirmed", mode: "in-person" },
+    { time: "11:00 AM", student: "Ananya Kapoor", subject: "Mathematics", status: "confirmed", mode: "online" },
+    { time: "2:00 PM", student: "Dev Malhotra", subject: "Chemistry", status: "pending", mode: "online" },
   ]},
 ];
 
@@ -48,17 +66,11 @@ const studentRequests = [
 ];
 
 const earningsData = {
-  thisMonth: 24800,
-  lastMonth: 21500,
-  totalStudents: 18,
-  completedSessions: 42,
-  upcomingSessions: 13,
-  averageRating: 4.9,
+  thisMonth: 24800, lastMonth: 21500, totalStudents: 18, completedSessions: 42,
+  upcomingSessions: 13, averageRating: 4.9,
   weeklyBreakdown: [
-    { week: "Week 1", amount: 5600 },
-    { week: "Week 2", amount: 6200 },
-    { week: "Week 3", amount: 7400 },
-    { week: "Week 4", amount: 5600 },
+    { week: "Week 1", amount: 5600 }, { week: "Week 2", amount: 6200 },
+    { week: "Week 3", amount: 7400 }, { week: "Week 4", amount: 5600 },
   ],
   subjectBreakdown: [
     { subject: "Mathematics", percentage: 55, amount: 13640 },
@@ -72,7 +84,45 @@ const TutorDashboard = () => {
   const [selectedDay, setSelectedDay] = useState(0);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [reviewTarget, setReviewTarget] = useState("");
+  const [schedule, setSchedule] = useState<DaySchedule[]>(initialSchedule);
+  const [addSlotOpen, setAddSlotOpen] = useState(false);
+  const [newSlot, setNewSlot] = useState({ time: "", student: "", subject: "", mode: "online" as "online" | "in-person" });
+
   const growthPercent = (((earningsData.thisMonth - earningsData.lastMonth) / earningsData.lastMonth) * 100).toFixed(1);
+
+  const markAsDone = (dayIndex: number, slotIndex: number) => {
+    const updated = [...schedule];
+    updated[dayIndex].slots[slotIndex].status = "completed";
+    setSchedule(updated);
+    toast.success(`Session with ${updated[dayIndex].slots[slotIndex].student} marked as completed!`);
+  };
+
+  const acceptSlot = (dayIndex: number, slotIndex: number) => {
+    const updated = [...schedule];
+    updated[dayIndex].slots[slotIndex].status = "confirmed";
+    setSchedule(updated);
+    toast.success("Session confirmed!");
+  };
+
+  const declineSlot = (dayIndex: number, slotIndex: number) => {
+    const updated = [...schedule];
+    updated[dayIndex].slots.splice(slotIndex, 1);
+    setSchedule(updated);
+    toast.success("Session declined.");
+  };
+
+  const handleAddSlot = () => {
+    if (!newSlot.time || !newSlot.student || !newSlot.subject) {
+      toast.error("Please fill all fields");
+      return;
+    }
+    const updated = [...schedule];
+    updated[selectedDay].slots.push({ ...newSlot, status: "confirmed" });
+    setSchedule(updated);
+    setNewSlot({ time: "", student: "", subject: "", mode: "online" });
+    setAddSlotOpen(false);
+    toast.success("Session added to schedule!");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -90,11 +140,8 @@ const TutorDashboard = () => {
             </Button>
             <div className="flex items-center gap-3">
               <EditProfileDialog profile={{
-                name: "Dr. Ananya Sharma",
-                title: "Mathematics Tutor",
-                location: "Delhi, India",
-                hourlyRate: 800,
-                experience: "8 years",
+                name: "Dr. Ananya Sharma", title: "Mathematics Tutor", location: "Delhi, India",
+                hourlyRate: 800, experience: "8 years",
                 about: "Ph.D. in Mathematics from IIT Delhi with 8 years of teaching experience.",
               }} />
               <div className="w-9 h-9 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-sm font-semibold text-primary">AS</div>
@@ -108,7 +155,6 @@ const TutorDashboard = () => {
       </nav>
 
       <main className="pt-24 pb-12 container mx-auto px-6">
-        {/* Header */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-1">Dashboard</h1>
           <p className="text-muted-foreground">Welcome back, Dr. Sharma. Here's your overview.</p>
@@ -117,21 +163,20 @@ const TutorDashboard = () => {
         {/* Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[
-            { label: "This Month", value: `₹${earningsData.thisMonth.toLocaleString()}`, icon: DollarSign, change: `+${growthPercent}%`, up: true, color: "text-primary" },
-            { label: "Active Students", value: earningsData.totalStudents, icon: Users, change: "+3 new", up: true, color: "text-secondary" },
-            { label: "Sessions Done", value: earningsData.completedSessions, icon: CheckCircle, change: "This month", up: true, color: "text-primary" },
-            { label: "Avg Rating", value: earningsData.averageRating, icon: Star, change: "128 reviews", up: true, color: "text-yellow-400" },
+            { label: "This Month", value: `₹${earningsData.thisMonth.toLocaleString()}`, icon: DollarSign, change: `+${growthPercent}%`, color: "text-primary" },
+            { label: "Active Students", value: earningsData.totalStudents, icon: Users, change: "+3 new", color: "text-secondary" },
+            { label: "Sessions Done", value: earningsData.completedSessions, icon: CheckCircle, change: "This month", color: "text-primary" },
+            { label: "Avg Rating", value: earningsData.averageRating, icon: Star, change: "128 reviews", color: "text-yellow-400" },
           ].map((stat, i) => (
             <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
               <Card className="glass border-border/50 hover:border-primary/30 transition-colors">
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between mb-3">
-                    <div className={`w-10 h-10 rounded-lg bg-muted flex items-center justify-center`}>
+                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
                       <stat.icon className={`w-5 h-5 ${stat.color}`} />
                     </div>
                     <span className="flex items-center gap-1 text-xs text-primary">
-                      <ArrowUpRight className="w-3 h-3" />
-                      {stat.change}
+                      <ArrowUpRight className="w-3 h-3" />{stat.change}
                     </span>
                   </div>
                   <p className="text-2xl font-bold text-foreground">{stat.value}</p>
@@ -160,56 +205,98 @@ const TutorDashboard = () => {
           {/* Schedule Tab */}
           <TabsContent value="schedule">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Calendar */}
               <Card className="glass border-border/50">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg text-foreground">Calendar</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CalendarWidget
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    className="rounded-md pointer-events-auto"
-                  />
+                  <CalendarWidget mode="single" selected={selectedDate} onSelect={setSelectedDate} className="rounded-md pointer-events-auto" />
                   <div className="mt-4 space-y-2">
                     <div className="flex items-center gap-2 text-sm">
                       <div className="w-3 h-3 rounded-full bg-primary" />
-                      <span className="text-muted-foreground">Confirmed sessions</span>
+                      <span className="text-muted-foreground">Confirmed</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <div className="w-3 h-3 rounded-full bg-secondary" />
-                      <span className="text-muted-foreground">Pending approval</span>
+                      <span className="text-muted-foreground">Pending</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <div className="w-3 h-3 rounded-full bg-muted-foreground" />
+                      <span className="text-muted-foreground">Completed</span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Weekly Schedule */}
               <div className="lg:col-span-2 space-y-4">
-                {/* Day selector */}
-                <div className="flex gap-2 overflow-x-auto pb-2">
-                  {weekSchedule.map((day, i) => (
-                    <button
-                      key={day.day}
-                      onClick={() => setSelectedDay(i)}
-                      className={`flex flex-col items-center px-4 py-3 rounded-lg border transition-all min-w-[70px] ${
-                        selectedDay === i
-                          ? "bg-primary text-primary-foreground border-primary glow-lime"
-                          : "bg-muted/50 text-muted-foreground border-border/50 hover:border-primary/30"
-                      }`}
-                    >
-                      <span className="text-xs font-medium">{day.day}</span>
-                      <span className="text-lg font-bold">{day.date}</span>
-                      <span className="text-xs mt-1">{day.slots.length} slots</span>
-                    </button>
-                  ))}
+                {/* Day selector + Add slot */}
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-2 overflow-x-auto pb-2">
+                    {schedule.map((day, i) => (
+                      <button
+                        key={day.day}
+                        onClick={() => setSelectedDay(i)}
+                        className={`flex flex-col items-center px-4 py-3 rounded-lg border transition-all min-w-[70px] ${
+                          selectedDay === i
+                            ? "bg-primary text-primary-foreground border-primary glow-lime"
+                            : "bg-muted/50 text-muted-foreground border-border/50 hover:border-primary/30"
+                        }`}
+                      >
+                        <span className="text-xs font-medium">{day.day}</span>
+                        <span className="text-lg font-bold">{day.date}</span>
+                        <span className="text-xs mt-1">{day.slots.length} slots</span>
+                      </button>
+                    ))}
+                  </div>
+                  <Dialog open={addSlotOpen} onOpenChange={setAddSlotOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 shrink-0 ml-3">
+                        <Plus className="w-4 h-4 mr-1" /> Add Session
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="glass border-border/50">
+                      <DialogHeader>
+                        <DialogTitle className="text-foreground">Schedule New Session — {schedule[selectedDay]?.day}</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 mt-2">
+                        <div className="space-y-2">
+                          <Label className="text-muted-foreground">Student Name</Label>
+                          <Input value={newSlot.student} onChange={(e) => setNewSlot({ ...newSlot, student: e.target.value })} placeholder="e.g. Aditi Sharma" className="bg-muted/50 border-border/50" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label className="text-muted-foreground">Time</Label>
+                            <Input value={newSlot.time} onChange={(e) => setNewSlot({ ...newSlot, time: e.target.value })} placeholder="e.g. 9:00 AM" className="bg-muted/50 border-border/50" />
+                          </div>
+                          <div className="space-y-2">
+                            <Label className="text-muted-foreground">Subject</Label>
+                            <Input value={newSlot.subject} onChange={(e) => setNewSlot({ ...newSlot, subject: e.target.value })} placeholder="e.g. Mathematics" className="bg-muted/50 border-border/50" />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-muted-foreground">Mode</Label>
+                          <Select value={newSlot.mode} onValueChange={(v) => setNewSlot({ ...newSlot, mode: v as "online" | "in-person" })}>
+                            <SelectTrigger className="bg-muted/50 border-border/50">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-popover border-border">
+                              <SelectItem value="online">Online</SelectItem>
+                              <SelectItem value="in-person">In-Person</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <Button onClick={handleAddSlot} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
+                          Add to Schedule
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
 
                 {/* Slots */}
                 <div className="space-y-3">
-                  {weekSchedule[selectedDay].slots.map((slot, i) => (
-                    <motion.div key={i} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
+                  {schedule[selectedDay].slots.map((slot, i) => (
+                    <motion.div key={`${selectedDay}-${i}`} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}>
                       <Card className="glass border-border/50 hover:border-primary/20 transition-colors">
                         <CardContent className="p-4 flex items-center justify-between">
                           <div className="flex items-center gap-4">
@@ -220,31 +307,33 @@ const TutorDashboard = () => {
                             <div className="h-10 w-px bg-border" />
                             <div>
                               <p className="font-medium text-foreground">{slot.student}</p>
-                              <p className="text-sm text-muted-foreground">{slot.subject} • 1 hour session</p>
+                              <p className="text-sm text-muted-foreground">
+                                {slot.subject} • {slot.mode === "online" ? "Online" : "In-Person"}
+                              </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Badge className={slot.status === "confirmed"
-                              ? "bg-primary/10 text-primary border border-primary/20"
-                              : slot.status === "completed"
-                              ? "bg-primary/20 text-primary border border-primary/30"
+                            <Badge className={
+                              slot.status === "confirmed" ? "bg-primary/10 text-primary border border-primary/20"
+                              : slot.status === "completed" ? "bg-muted text-muted-foreground border border-border"
                               : "bg-secondary/10 text-secondary border border-secondary/20"
                             }>
-                              {slot.status === "confirmed" ? "Confirmed" : slot.status === "completed" ? "Completed" : "Pending"}
+                              {slot.status === "confirmed" ? "Confirmed" : slot.status === "completed" ? "Done" : "Pending"}
                             </Badge>
                             {slot.status === "pending" && (
                               <div className="flex gap-1">
-                                <Button size="icon" variant="ghost" className="h-8 w-8 text-primary hover:bg-primary/10">
+                                <Button size="icon" variant="ghost" className="h-8 w-8 text-primary hover:bg-primary/10" onClick={() => acceptSlot(selectedDay, i)}>
                                   <CheckCircle className="w-4 h-4" />
                                 </Button>
-                                <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                                <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive hover:bg-destructive/10" onClick={() => declineSlot(selectedDay, i)}>
                                   <XCircle className="w-4 h-4" />
                                 </Button>
                               </div>
                             )}
                             {slot.status === "confirmed" && (
-                              <Button size="sm" variant="outline" className="h-8 border-primary/50 text-primary hover:bg-primary/10 text-xs">
-                                <CheckCircle className="w-3 h-3 mr-1" /> Mark Complete
+                              <Button size="sm" variant="outline" className="h-8 border-primary/50 text-primary hover:bg-primary/10 text-xs"
+                                onClick={() => markAsDone(selectedDay, i)}>
+                                <CheckCircle className="w-3 h-3 mr-1" /> Mark Done
                               </Button>
                             )}
                             {slot.status === "completed" && (
@@ -258,6 +347,13 @@ const TutorDashboard = () => {
                       </Card>
                     </motion.div>
                   ))}
+                  {schedule[selectedDay].slots.length === 0 && (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Calendar className="w-10 h-10 mx-auto mb-3 opacity-50" />
+                      <p>No sessions scheduled for this day</p>
+                      <p className="text-sm mt-1">Click "Add Session" to create one</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -266,7 +362,6 @@ const TutorDashboard = () => {
           {/* Earnings Tab */}
           <TabsContent value="earnings">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Earnings summary */}
               <div className="lg:col-span-2 space-y-6">
                 <Card className="glass border-border/50">
                   <CardHeader>
@@ -285,13 +380,7 @@ const TutorDashboard = () => {
                               <span className="font-mono font-medium text-foreground">₹{week.amount.toLocaleString()}</span>
                             </div>
                             <div className="h-3 rounded-full bg-muted overflow-hidden">
-                              <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: `${pct}%` }}
-                                transition={{ delay: i * 0.15, duration: 0.6 }}
-                                className="h-full rounded-full"
-                                style={{ background: "var(--gradient-primary)" }}
-                              />
+                              <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ delay: i * 0.15, duration: 0.6 }} className="h-full rounded-full" style={{ background: "var(--gradient-primary)" }} />
                             </div>
                           </div>
                         );
@@ -304,11 +393,8 @@ const TutorDashboard = () => {
                   </CardContent>
                 </Card>
 
-                {/* Subject breakdown */}
                 <Card className="glass border-border/50">
-                  <CardHeader>
-                    <CardTitle className="text-lg text-foreground">Earnings by Subject</CardTitle>
-                  </CardHeader>
+                  <CardHeader><CardTitle className="text-lg text-foreground">Earnings by Subject</CardTitle></CardHeader>
                   <CardContent className="space-y-4">
                     {earningsData.subjectBreakdown.map((item) => (
                       <div key={item.subject} className="space-y-2">
@@ -329,36 +415,24 @@ const TutorDashboard = () => {
                 </Card>
               </div>
 
-              {/* Side stats */}
               <div className="space-y-4">
                 <Card className="glass border-border/50 border-l-4 border-l-primary">
                   <CardContent className="p-5">
-                    <div className="flex items-center gap-3 mb-3">
-                      <TrendingUp className="w-5 h-5 text-primary" />
-                      <span className="text-sm text-muted-foreground">Growth</span>
-                    </div>
+                    <div className="flex items-center gap-3 mb-3"><TrendingUp className="w-5 h-5 text-primary" /><span className="text-sm text-muted-foreground">Growth</span></div>
                     <p className="text-3xl font-bold text-foreground">+{growthPercent}%</p>
                     <p className="text-sm text-muted-foreground mt-1">vs last month (₹{earningsData.lastMonth.toLocaleString()})</p>
                   </CardContent>
                 </Card>
-
                 <Card className="glass border-border/50 border-l-4 border-l-secondary">
                   <CardContent className="p-5">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Clock className="w-5 h-5 text-secondary" />
-                      <span className="text-sm text-muted-foreground">Upcoming</span>
-                    </div>
+                    <div className="flex items-center gap-3 mb-3"><Clock className="w-5 h-5 text-secondary" /><span className="text-sm text-muted-foreground">Upcoming</span></div>
                     <p className="text-3xl font-bold text-foreground">{earningsData.upcomingSessions}</p>
                     <p className="text-sm text-muted-foreground mt-1">sessions this week</p>
                   </CardContent>
                 </Card>
-
                 <Card className="glass border-border/50 border-l-4 border-l-primary">
                   <CardContent className="p-5">
-                    <div className="flex items-center gap-3 mb-3">
-                      <Users className="w-5 h-5 text-primary" />
-                      <span className="text-sm text-muted-foreground">Completion Rate</span>
-                    </div>
+                    <div className="flex items-center gap-3 mb-3"><Users className="w-5 h-5 text-primary" /><span className="text-sm text-muted-foreground">Completion Rate</span></div>
                     <p className="text-3xl font-bold text-foreground">96%</p>
                     <Progress value={96} className="h-2 mt-3" />
                   </CardContent>
@@ -370,22 +444,17 @@ const TutorDashboard = () => {
           {/* Student Requests Tab */}
           <TabsContent value="requests">
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-foreground">Pending Requests</h2>
-                  <p className="text-sm text-muted-foreground">{studentRequests.length} students are waiting for your response</p>
-                </div>
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">Pending Requests</h2>
+                <p className="text-sm text-muted-foreground">{studentRequests.length} students are waiting for your response</p>
               </div>
-
               {studentRequests.map((request, i) => (
                 <motion.div key={request.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}>
                   <Card className="glass border-border/50 hover:border-primary/20 transition-all">
                     <CardContent className="p-5">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex items-start gap-4">
-                          <div className="w-12 h-12 rounded-full bg-secondary/10 border border-secondary/20 flex items-center justify-center text-sm font-semibold text-secondary shrink-0">
-                            {request.avatar}
-                          </div>
+                          <div className="w-12 h-12 rounded-full bg-secondary/10 border border-secondary/20 flex items-center justify-center text-sm font-semibold text-secondary shrink-0">{request.avatar}</div>
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 flex-wrap">
                               <h3 className="font-semibold text-foreground">{request.name}</h3>

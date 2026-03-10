@@ -2,154 +2,36 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
+import ReviewDialog from "@/components/ReviewDialog";
 import {
-  ArrowLeft,
-  Calendar,
-  Clock,
-  Star,
-  BookOpen,
-  History,
-  MessageSquare,
-  MapPin,
-  Video,
-  IndianRupee,
-  CheckCircle2,
-  XCircle,
-  Send,
+  ArrowLeft, Calendar, Clock, Star, BookOpen, History, MessageSquare,
+  MapPin, Video, IndianRupee, CheckCircle2, XCircle, Send,
 } from "lucide-react";
+import { toast } from "sonner";
 
-const upcomingSessions = [
-  {
-    id: 1,
-    tutor: "Dr. Priya Sharma",
-    avatar: "",
-    initials: "PS",
-    subject: "Mathematics",
-    date: "2026-03-10",
-    time: "4:00 PM - 5:00 PM",
-    mode: "Online",
-    status: "confirmed",
-    fee: 800,
-  },
-  {
-    id: 2,
-    tutor: "Rahul Verma",
-    avatar: "",
-    initials: "RV",
-    subject: "Physics",
-    date: "2026-03-11",
-    time: "6:00 PM - 7:30 PM",
-    mode: "In-Person",
-    location: "Sector 15, Noida",
-    status: "confirmed",
-    fee: 1000,
-  },
-  {
-    id: 3,
-    tutor: "Anita Desai",
-    avatar: "",
-    initials: "AD",
-    subject: "English Literature",
-    date: "2026-03-13",
-    time: "3:00 PM - 4:00 PM",
-    mode: "Online",
-    status: "pending",
-    fee: 600,
-  },
+const initialUpcomingSessions = [
+  { id: 1, tutor: "Dr. Priya Sharma", initials: "PS", subject: "Mathematics", date: "2026-03-10", time: "4:00 PM - 5:00 PM", mode: "Online", status: "confirmed", fee: 800 },
+  { id: 2, tutor: "Rahul Verma", initials: "RV", subject: "Physics", date: "2026-03-11", time: "6:00 PM - 7:30 PM", mode: "In-Person", location: "Sector 15, Noida", status: "confirmed", fee: 1000 },
+  { id: 3, tutor: "Anita Desai", initials: "AD", subject: "English Literature", date: "2026-03-13", time: "3:00 PM - 4:00 PM", mode: "Online", status: "pending", fee: 600 },
 ];
 
-const bookingHistory = [
-  {
-    id: 1,
-    tutor: "Dr. Priya Sharma",
-    initials: "PS",
-    subject: "Mathematics",
-    date: "2026-03-01",
-    time: "4:00 PM - 5:00 PM",
-    status: "completed",
-    fee: 800,
-    reviewed: true,
-  },
-  {
-    id: 2,
-    tutor: "Rahul Verma",
-    initials: "RV",
-    subject: "Physics",
-    date: "2026-02-28",
-    time: "6:00 PM - 7:30 PM",
-    status: "completed",
-    fee: 1000,
-    reviewed: false,
-  },
-  {
-    id: 3,
-    tutor: "Dr. Priya Sharma",
-    initials: "PS",
-    subject: "Mathematics",
-    date: "2026-02-25",
-    time: "4:00 PM - 5:00 PM",
-    status: "completed",
-    fee: 800,
-    reviewed: true,
-  },
-  {
-    id: 4,
-    tutor: "Anita Desai",
-    initials: "AD",
-    subject: "English Literature",
-    date: "2026-02-20",
-    time: "3:00 PM - 4:00 PM",
-    status: "cancelled",
-    fee: 600,
-    reviewed: false,
-  },
-  {
-    id: 5,
-    tutor: "Suresh Iyer",
-    initials: "SI",
-    subject: "Chemistry",
-    date: "2026-02-18",
-    time: "5:00 PM - 6:00 PM",
-    status: "completed",
-    fee: 750,
-    reviewed: true,
-  },
+const initialBookingHistory = [
+  { id: 1, tutor: "Dr. Priya Sharma", initials: "PS", subject: "Mathematics", date: "2026-03-01", time: "4:00 PM - 5:00 PM", status: "completed", fee: 800, reviewed: true },
+  { id: 2, tutor: "Rahul Verma", initials: "RV", subject: "Physics", date: "2026-02-28", time: "6:00 PM - 7:30 PM", status: "completed", fee: 1000, reviewed: false },
+  { id: 3, tutor: "Dr. Priya Sharma", initials: "PS", subject: "Mathematics", date: "2026-02-25", time: "4:00 PM - 5:00 PM", status: "completed", fee: 800, reviewed: true },
+  { id: 4, tutor: "Anita Desai", initials: "AD", subject: "English Literature", date: "2026-02-20", time: "3:00 PM - 4:00 PM", status: "cancelled", fee: 600, reviewed: false },
+  { id: 5, tutor: "Suresh Iyer", initials: "SI", subject: "Chemistry", date: "2026-02-18", time: "5:00 PM - 6:00 PM", status: "completed", fee: 750, reviewed: true },
 ];
 
 const myReviews = [
-  {
-    id: 1,
-    tutor: "Dr. Priya Sharma",
-    initials: "PS",
-    subject: "Mathematics",
-    rating: 5,
-    date: "2026-03-02",
-    comment: "Excellent teaching style! Made calculus concepts very easy to understand. Highly recommend.",
-  },
-  {
-    id: 2,
-    tutor: "Suresh Iyer",
-    initials: "SI",
-    subject: "Chemistry",
-    rating: 4,
-    date: "2026-02-19",
-    comment: "Good session on organic chemistry. Would appreciate more practice problems next time.",
-  },
-  {
-    id: 3,
-    tutor: "Dr. Priya Sharma",
-    initials: "PS",
-    subject: "Mathematics",
-    rating: 5,
-    date: "2026-02-26",
-    comment: "Another great session. Patient and thorough explanations.",
-  },
+  { id: 1, tutor: "Dr. Priya Sharma", initials: "PS", subject: "Mathematics", rating: 5, date: "2026-03-02", comment: "Excellent teaching style! Made calculus concepts very easy to understand." },
+  { id: 2, tutor: "Suresh Iyer", initials: "SI", subject: "Chemistry", rating: 4, date: "2026-02-19", comment: "Good session on organic chemistry. Would appreciate more practice problems." },
+  { id: 3, tutor: "Dr. Priya Sharma", initials: "PS", subject: "Mathematics", rating: 5, date: "2026-02-26", comment: "Another great session. Patient and thorough explanations." },
 ];
 
 const StatusBadge = ({ status }: { status: string }) => {
@@ -161,7 +43,7 @@ const StatusBadge = ({ status }: { status: string }) => {
   };
   return (
     <Badge variant="outline" className={styles[status] || ""}>
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {status === "completed" ? "✓ Completed" : status.charAt(0).toUpperCase() + status.slice(1)}
     </Badge>
   );
 };
@@ -169,16 +51,16 @@ const StatusBadge = ({ status }: { status: string }) => {
 const StarRating = ({ rating, interactive = false, onChange }: { rating: number; interactive?: boolean; onChange?: (r: number) => void }) => (
   <div className="flex gap-1">
     {[1, 2, 3, 4, 5].map((s) => (
-      <Star
-        key={s}
-        className={`h-4 w-4 ${s <= rating ? "fill-primary text-primary" : "text-muted-foreground/40"} ${interactive ? "cursor-pointer hover:text-primary" : ""}`}
-        onClick={() => interactive && onChange?.(s)}
-      />
+      <Star key={s} className={`h-4 w-4 ${s <= rating ? "fill-primary text-primary" : "text-muted-foreground/40"} ${interactive ? "cursor-pointer hover:text-primary" : ""}`} onClick={() => interactive && onChange?.(s)} />
     ))}
   </div>
 );
 
 const StudentDashboard = () => {
+  const [upcomingSessions, setUpcomingSessions] = useState(initialUpcomingSessions);
+  const [bookingHistory] = useState(initialBookingHistory);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewTarget, setReviewTarget] = useState("");
   const [reviewTutor, setReviewTutor] = useState<number | null>(null);
   const [newRating, setNewRating] = useState(0);
   const [newComment, setNewComment] = useState("");
@@ -186,24 +68,19 @@ const StudentDashboard = () => {
   const totalSpent = bookingHistory.filter((b) => b.status === "completed").reduce((s, b) => s + b.fee, 0);
   const totalSessions = bookingHistory.filter((b) => b.status === "completed").length;
 
-  const fadeUp = {
-    initial: { opacity: 0, y: 16 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -16 },
-    transition: { duration: 0.3 },
+  const cancelSession = (id: number) => {
+    setUpcomingSessions(prev => prev.filter(s => s.id !== id));
+    toast.success("Session cancelled successfully.");
   };
+
+  const fadeUp = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0, y: -16 }, transition: { duration: 0.3 } };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="border-b border-border/50 glass sticky top-0 z-30">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
+            <Link to="/"><Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button></Link>
             <div>
               <h1 className="text-xl font-bold">Student Dashboard</h1>
               <p className="text-sm text-muted-foreground">Welcome back, Arjun</p>
@@ -226,9 +103,7 @@ const StudentDashboard = () => {
             <motion.div key={i} {...fadeUp} transition={{ delay: i * 0.1 }}>
               <Card className="glass border-border/50">
                 <CardContent className="p-5 flex items-center gap-4">
-                  <div className={`p-3 rounded-xl bg-muted ${stat.color}`}>
-                    <stat.icon className="h-5 w-5" />
-                  </div>
+                  <div className={`p-3 rounded-xl bg-muted ${stat.color}`}><stat.icon className="h-5 w-5" /></div>
                   <div>
                     <p className="text-2xl font-bold">{stat.value}</p>
                     <p className="text-xs text-muted-foreground">{stat.label}</p>
@@ -239,7 +114,6 @@ const StudentDashboard = () => {
           ))}
         </div>
 
-        {/* Tabs */}
         <Tabs defaultValue="upcoming" className="space-y-6">
           <TabsList className="bg-muted/50 border border-border/50">
             <TabsTrigger value="upcoming" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
@@ -253,8 +127,8 @@ const StudentDashboard = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Upcoming Sessions */}
           <AnimatePresence mode="wait">
+            {/* Upcoming */}
             <TabsContent value="upcoming">
               <motion.div {...fadeUp} className="space-y-4">
                 {upcomingSessions.map((session) => (
@@ -273,7 +147,7 @@ const StudentDashboard = () => {
                               <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{session.time}</span>
                               <span className="flex items-center gap-1">
                                 {session.mode === "Online" ? <Video className="h-3 w-3" /> : <MapPin className="h-3 w-3" />}
-                                {session.mode === "In-Person" ? session.location : session.mode}
+                                {session.mode === "In-Person" ? (session as any).location : session.mode}
                               </span>
                             </div>
                           </div>
@@ -281,20 +155,24 @@ const StudentDashboard = () => {
                         <div className="flex items-center gap-3">
                           <StatusBadge status={session.status} />
                           <span className="font-bold text-primary">₹{session.fee}</span>
-                          {session.status !== "cancelled" && (
-                            <Button size="sm" variant="outline" className="border-destructive/50 text-destructive hover:bg-destructive/10">
-                              <XCircle className="h-3 w-3 mr-1" /> Cancel
-                            </Button>
-                          )}
+                          <Button size="sm" variant="outline" className="border-destructive/50 text-destructive hover:bg-destructive/10" onClick={() => cancelSession(session.id)}>
+                            <XCircle className="h-3 w-3 mr-1" /> Cancel
+                          </Button>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
+                {upcomingSessions.length === 0 && (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Calendar className="w-10 h-10 mx-auto mb-3 opacity-50" />
+                    <p>No upcoming sessions</p>
+                  </div>
+                )}
               </motion.div>
             </TabsContent>
 
-            {/* Booking History */}
+            {/* History */}
             <TabsContent value="history">
               <motion.div {...fadeUp} className="space-y-4">
                 {bookingHistory.map((booking) => (
@@ -317,7 +195,8 @@ const StudentDashboard = () => {
                         <div className="flex items-center gap-3">
                           <StatusBadge status={booking.status} />
                           {booking.status === "completed" && !booking.reviewed && (
-                            <Button size="sm" variant="outline" className="border-primary/50 text-primary hover:bg-primary/10" onClick={() => { setReviewTutor(booking.id); setNewRating(0); setNewComment(""); }}>
+                            <Button size="sm" variant="outline" className="border-primary/50 text-primary hover:bg-primary/10"
+                              onClick={() => { setReviewTarget(booking.tutor); setReviewOpen(true); }}>
                               <Star className="h-3 w-3 mr-1" /> Review
                             </Button>
                           )}
@@ -327,27 +206,6 @@ const StudentDashboard = () => {
                           <span className={`font-bold ${booking.status === "cancelled" ? "text-destructive line-through" : "text-primary"}`}>₹{booking.fee}</span>
                         </div>
                       </div>
-
-                      {/* Inline review form */}
-                      <AnimatePresence>
-                        {reviewTutor === booking.id && (
-                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                            <div className="mt-4 pt-4 border-t border-border/50 space-y-3">
-                              <div className="flex items-center gap-3">
-                                <span className="text-sm text-muted-foreground">Your rating:</span>
-                                <StarRating rating={newRating} interactive onChange={setNewRating} />
-                              </div>
-                              <Textarea placeholder="Share your experience..." value={newComment} onChange={(e) => setNewComment(e.target.value)} className="bg-muted/50 border-border/50 resize-none" rows={3} />
-                              <div className="flex gap-2 justify-end">
-                                <Button size="sm" variant="ghost" onClick={() => setReviewTutor(null)}>Cancel</Button>
-                                <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                                  <Send className="h-3 w-3 mr-1" /> Submit
-                                </Button>
-                              </div>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
                     </CardContent>
                   </Card>
                 ))}
@@ -382,6 +240,7 @@ const StudentDashboard = () => {
           </AnimatePresence>
         </Tabs>
       </main>
+      <ReviewDialog open={reviewOpen} onOpenChange={setReviewOpen} targetName={reviewTarget} targetRole="tutor" />
     </div>
   );
 };

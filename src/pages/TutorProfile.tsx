@@ -1,14 +1,11 @@
 import { useState } from "react";
 import { Star, MapPin, Clock, BookOpen, Award, ArrowLeft, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { GraduationCap } from "lucide-react";
-import CheckoutDialog from "@/components/CheckoutDialog";
-
-const timeSlots = ["9:00 AM", "10:00 AM", "11:00 AM", "2:00 PM", "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM"];
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 const reviews = [
   { name: "Aarav M.", rating: 5, text: "Excellent tutor! My son's math grades improved dramatically.", date: "2 weeks ago" },
@@ -16,10 +13,19 @@ const reviews = [
   { name: "Karthik P.", rating: 4, text: "Good teaching methodology. Flexible with timings.", date: "2 months ago" },
 ];
 
+const courses = [
+  { subject: "Calculus & Trigonometry", syllabus: "Limits, Derivatives, Integrals, Trig identities, Applications", duration: "3 months" },
+  { subject: "JEE Mathematics", syllabus: "Algebra, Coordinate Geometry, Calculus, Probability", duration: "6 months" },
+  { subject: "Olympiad Math", syllabus: "Number Theory, Combinatorics, Geometry, Inequalities", duration: "4 months" },
+];
+
 const TutorProfile = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [applied, setApplied] = useState(false);
+
+  const handleApply = () => {
+    setApplied(true);
+    toast.success("Application sent successfully! The tutor will review your request and schedule your sessions.");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -86,6 +92,22 @@ const TutorProfile = () => {
               </div>
             </div>
 
+            {/* Courses Offered */}
+            <div className="glass rounded-2xl p-8">
+              <h2 className="text-xl font-semibold text-foreground mb-6">Courses Offered</h2>
+              <div className="space-y-4">
+                {courses.map((course) => (
+                  <div key={course.subject} className="border border-border/50 rounded-xl p-5 hover:border-primary/30 transition-colors">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-foreground">{course.subject}</h3>
+                      <Badge variant="outline" className="border-primary/30 text-primary">{course.duration}</Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{course.syllabus}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Qualifications */}
             <div className="glass rounded-2xl p-8">
               <h2 className="text-xl font-semibold text-foreground mb-4">Qualifications</h2>
@@ -133,79 +155,53 @@ const TutorProfile = () => {
             </div>
           </motion.div>
 
-          {/* Booking Sidebar */}
+          {/* Apply Sidebar */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
           >
             <div className="glass rounded-2xl p-6 sticky top-28">
-              <h2 className="text-xl font-semibold text-foreground mb-4">Book a Session</h2>
-
-              <div className="mb-6">
-                <label className="text-sm font-medium text-muted-foreground mb-2 block">Select Date</label>
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  disabled={(date) => date < new Date() || date.getDay() === 0}
-                  className={cn("p-3 pointer-events-auto rounded-xl bg-muted/30")}
-                />
-              </div>
-
-              {selectedDate && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="mb-6"
-                >
-                  <label className="text-sm font-medium text-muted-foreground mb-3 block">Available Slots</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {timeSlots.map((slot) => (
-                      <button
-                        key={slot}
-                        onClick={() => setSelectedSlot(selectedSlot === slot ? null : slot)}
-                        className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                          selectedSlot === slot
-                            ? "bg-primary text-primary-foreground glow-lime"
-                            : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
-                        }`}
-                      >
-                        {slot}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
+              <h2 className="text-xl font-semibold text-foreground mb-4">Interested in Learning?</h2>
+              <p className="text-sm text-muted-foreground mb-6">
+                Apply to learn from this tutor. Once accepted, the tutor will schedule your sessions and notify you with the timings.
+              </p>
 
               <div className="border-t border-border/50 pt-4 mb-4">
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="text-muted-foreground">Session (1 hr)</span>
-                  <span className="text-foreground">₹800</span>
+                  <span className="text-muted-foreground">Rate</span>
+                  <span className="text-foreground">₹800/hr</span>
                 </div>
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="text-muted-foreground">Platform fee</span>
-                  <span className="text-foreground">₹50</span>
+                  <span className="text-muted-foreground">Mode</span>
+                  <span className="text-foreground">Online & In-Person</span>
                 </div>
-                <div className="flex justify-between font-semibold text-foreground pt-2 border-t border-border/50">
-                  <span>Total</span>
-                  <span>₹850</span>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Courses</span>
+                  <span className="text-foreground">{courses.length} available</span>
                 </div>
               </div>
 
               <Button
                 className="w-full h-12 bg-primary text-primary-foreground hover:bg-lime-glow font-semibold text-base"
-                disabled={!selectedDate || !selectedSlot}
-                onClick={() => setCheckoutOpen(true)}
+                disabled={applied}
+                onClick={handleApply}
               >
-                Proceed to Checkout
+                {applied ? (
+                  <><CheckCircle className="w-5 h-5 mr-2" /> Application Sent</>
+                ) : (
+                  "Apply Now"
+                )}
               </Button>
+              {applied && (
+                <p className="text-xs text-primary text-center mt-3">
+                  The tutor will review your application and schedule your sessions.
+                </p>
+              )}
             </div>
           </motion.div>
         </div>
       </div>
-
-      <CheckoutDialog open={checkoutOpen} onOpenChange={setCheckoutOpen} />
     </div>
   );
 };
