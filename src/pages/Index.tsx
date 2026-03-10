@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Search, MapPin, BookOpen, Star, ArrowRight, GraduationCap, Clock, Shield } from "lucide-react";
+import { Search, MapPin, BookOpen, Star, ArrowRight, GraduationCap, Clock, Shield, CheckCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 const subjects = ["Mathematics", "Physics", "Chemistry", "English", "Biology", "Computer Science", "Hindi", "Economics"];
 
@@ -19,6 +20,14 @@ const featuredTutors = [
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+  const [appliedTutors, setAppliedTutors] = useState<number[]>([]);
+
+  const handleApply = (tutorId: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setAppliedTutors(prev => [...prev, tutorId]);
+    toast.success("Application sent successfully! The tutor will schedule your sessions.");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -33,9 +42,7 @@ const Index = () => {
             <Link to="/" className="text-sm text-foreground hover:text-primary transition-colors">Home</Link>
             <Link to="/signup" className="text-sm text-muted-foreground hover:text-primary transition-colors">Sign Up</Link>
             <Link to="/login">
-              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-lime-glow">
-                Login
-              </Button>
+              <Button size="sm" className="bg-primary text-primary-foreground hover:bg-lime-glow">Login</Button>
             </Link>
           </div>
         </div>
@@ -47,43 +54,24 @@ const Index = () => {
           <div className="absolute top-20 left-1/4 w-96 h-96 rounded-full bg-primary/5 blur-3xl animate-pulse-glow" />
           <div className="absolute bottom-10 right-1/4 w-72 h-72 rounded-full bg-secondary/5 blur-3xl animate-pulse-glow" style={{ animationDelay: "1.5s" }} />
         </div>
-
         <div className="container mx-auto px-6 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="max-w-3xl mx-auto text-center"
-          >
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="max-w-3xl mx-auto text-center">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-              Find Your Perfect{" "}
-              <span className="text-gradient">Home Tutor</span>
+              Find Your Perfect{" "}<span className="text-gradient">Home Tutor</span>
             </h1>
             <p className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto">
               Connect with expert tutors in your area. Personalized learning, flexible scheduling, verified profiles.
             </p>
-
-            {/* Search Bar */}
             <div className="glass rounded-2xl p-2 flex flex-col sm:flex-row gap-2 max-w-2xl mx-auto glow-lime">
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  placeholder="Search by subject, tutor name..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 h-12 bg-muted/50 border-none text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
-                />
+                <Input placeholder="Search by subject, tutor name..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-12 h-12 bg-muted/50 border-none text-foreground placeholder:text-muted-foreground focus-visible:ring-primary" />
               </div>
               <div className="relative flex-1">
                 <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  placeholder="Your location..."
-                  className="pl-12 h-12 bg-muted/50 border-none text-foreground placeholder:text-muted-foreground focus-visible:ring-primary"
-                />
+                <Input placeholder="Your location..." className="pl-12 h-12 bg-muted/50 border-none text-foreground placeholder:text-muted-foreground focus-visible:ring-primary" />
               </div>
-              <Button className="h-12 px-8 bg-primary text-primary-foreground hover:bg-lime-glow font-semibold">
-                Search
-              </Button>
+              <Button className="h-12 px-8 bg-primary text-primary-foreground hover:bg-lime-glow font-semibold">Search</Button>
             </div>
           </motion.div>
         </div>
@@ -94,15 +82,8 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <div className="flex flex-wrap justify-center gap-3">
             {subjects.map((s) => (
-              <button
-                key={s}
-                onClick={() => setSelectedSubject(selectedSubject === s ? null : s)}
-                className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
-                  selectedSubject === s
-                    ? "bg-primary text-primary-foreground glow-lime"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-                }`}
-              >
+              <button key={s} onClick={() => setSelectedSubject(selectedSubject === s ? null : s)}
+                className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all ${selectedSubject === s ? "bg-primary text-primary-foreground glow-lime" : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"}`}>
                 {s}
               </button>
             ))}
@@ -135,46 +116,36 @@ const Index = () => {
         <div className="container mx-auto px-6">
           <div className="flex items-center justify-between mb-10">
             <h2 className="text-3xl font-bold text-foreground">Featured Tutors</h2>
-            <Button variant="ghost" className="text-primary hover:text-lime-glow">
-              View All <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
+            <Button variant="ghost" className="text-primary hover:text-lime-glow">View All <ArrowRight className="ml-2 w-4 h-4" /></Button>
           </div>
-
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredTutors.map((tutor, i) => (
-              <motion.div
-                key={tutor.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-              >
+              <motion.div key={tutor.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
                 <Link to={`/tutor/${tutor.id}`}>
                   <div className="glass rounded-xl p-6 hover:border-primary/30 transition-all group cursor-pointer">
                     <div className="flex items-start gap-4 mb-4">
-                      <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
-                        {tutor.avatar}
-                      </div>
+                      <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">{tutor.avatar}</div>
                       <div className="flex-1">
                         <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{tutor.name}</h3>
                         <p className="text-sm text-secondary">{tutor.subject}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                      <span className="flex items-center gap-1">
-                        <Star className="w-4 h-4 text-primary fill-primary" /> {tutor.rating} ({tutor.reviews})
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" /> {tutor.experience}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" /> {tutor.location}
-                      </span>
+                      <span className="flex items-center gap-1"><Star className="w-4 h-4 text-primary fill-primary" /> {tutor.rating} ({tutor.reviews})</span>
+                      <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {tutor.experience}</span>
+                      <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {tutor.location}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-lg font-bold text-foreground">₹{tutor.price}<span className="text-sm text-muted-foreground font-normal">/hr</span></span>
-                      <Button size="sm" className="bg-primary text-primary-foreground hover:bg-lime-glow">
-                        Book Now
-                      </Button>
+                      {appliedTutors.includes(tutor.id) ? (
+                        <Button size="sm" disabled className="bg-muted text-muted-foreground">
+                          <CheckCircle className="w-4 h-4 mr-1" /> Applied
+                        </Button>
+                      ) : (
+                        <Button size="sm" className="bg-primary text-primary-foreground hover:bg-lime-glow" onClick={(e) => handleApply(tutor.id, e)}>
+                          Apply
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </Link>
